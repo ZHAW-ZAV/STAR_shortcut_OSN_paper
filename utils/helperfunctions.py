@@ -1,19 +1,19 @@
-from typing import Union
+from typing import Union, List
 from traffic.core import Flight
 from traffic.data import airports, navaids
 from traffic.core.mixins import PointMixin
 
-def has_landing_on(flight: Flight, ap: str, rwy: str) -> Union[Flight, None]:
+def has_landing_on(flight: Flight, ap: str, rwy: List[str]) -> Union[Flight, None]:
     """
-    Provided with a flight, returns the flight if it has a landing on the
-    specified runway of the specified airport only if the flight does not
+    Provided with a flight, returns the flight if it has a landing on one of the
+    specified runways of the specified airport only if the flight does not
     contain a go-around, otherwise returns nothing. Can be used with traffic
     pipe
     """
     if landing := flight.aligned_on_ils(ap).next():
-        if landing.data.ILS.iloc[0] in rwy:
-            if landing.go_around().sum() == 0:
-                return flight
+        if flight.go_around().sum() == 0:
+            flight.data["rwy"] = landing.data.ILS.iloc[0]
+            return flight
         
 
 def aligned_navpoint(
@@ -64,12 +64,12 @@ def crop_after_th(
         th.latitude = (
             airports[airport]
             .runways.data.query(f"name == '{runway}'")
-            .latitude[0]
+            .latitude.iloc[0]
         )
         th.longitude = (
             airports[airport]
             .runways.data.query(f"name == '{runway}'")
-            .longitude[0]
+            .longitude.iloc[0]
         )
         # Create a subset containing only the data points below the specified altitude, then
         # calculate the distance to the threshold for each of them
