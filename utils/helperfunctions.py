@@ -3,17 +3,16 @@ from traffic.core import Flight
 from traffic.data import airports, navaids
 from traffic.core.mixins import PointMixin
 
-def has_landing_on(flight: Flight, ap: str, rwy: List[str]) -> Union[Flight, None]:
+def has_landing_at(flight: Flight, ap: str) -> Union[Flight, None]:
     """
-    Provided with a flight, returns the flight if it has a landing on one of the
-    specified runways of the specified airport only if the flight does not
-    contain a go-around, otherwise returns nothing. Can be used with traffic
-    pipe
+    Provided with a flight, returns the flight if it has a landing at the
+    specified airport only if the flight does not contain a go-around, otherwise
+    returns nothing. The function also adds the landing runway as an additional
+    column to the flight data. Can be used with traffic pipe
     """
     if landing := flight.aligned_on_ils(ap).next():
-        if flight.go_around().sum() == 0:
-            flight.data["rwy"] = landing.data.ILS.iloc[0]
-            return flight
+        flight.data["rwy"] = landing.data.ILS.iloc[0]
+        return flight
         
 
 def aligned_navpoint(
@@ -34,7 +33,7 @@ def aligned_navpoint(
     ).next():
         return flight
     
-def crop_after_th(
+def  crop_after_th(
     flight: Flight, airport: str, runway: str, altitude=3000
 ) -> Flight:
     """
@@ -114,3 +113,23 @@ def crop_before_wp(flight: Flight, wp: str) -> Flight:
         return flight.after(min_ts)
     except:
         return None
+    
+def remove_ga(flight: Flight, airport: str) -> Union[Flight, None]:
+    """
+    Returns the flight if it does not contain a go-around at the specified
+    airport, otherwise returns nothing. Designed to be used with traffic pipe.
+
+    Parameters
+    ----------
+    flight : Flight
+        Flight to be processed
+
+    Returns
+    -------
+    Flight
+        Flight without the go-around part
+    """
+
+    if flight.has(f'go_around("{airport}")') == False:
+        return flight
+    
