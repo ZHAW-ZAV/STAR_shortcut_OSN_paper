@@ -34,7 +34,7 @@ def aligned_navpoint(
         return flight
     
 def  crop_after_th(
-    flight: Flight, airport: str, runway: str, altitude=3000
+    flight: Flight, airport: str, altitude=3000
 ) -> Flight:
     """
     Crops the part of the flight after it passes the threshold of the specified runway
@@ -46,8 +46,6 @@ def  crop_after_th(
         Flight to be cropped
     airport : str
         ICAO code of the airport
-    runway : str
-        Name of the runway
     altitude : int, optional
         Altitude below which data is considered. For cases where the runway is overflown
         before the actual approach such as e.g. STAR BELUS3N at LSGG, by default 3000
@@ -58,6 +56,7 @@ def  crop_after_th(
         Cropped flight
     """
     try:
+        runway = flight.data.rwy.iloc[0]
         # Turn the threshold position into a PointMixin object
         th = PointMixin()
         th.latitude = (
@@ -83,7 +82,7 @@ def  crop_after_th(
     except:
         return None
 
-def crop_before_wp(flight: Flight, wp: str) -> Flight:
+def crop_before_wp(flight: Flight, wp) -> Flight:
     """
     Crops the part of the flight before it passes the specified waypoint. Designed to be
     used with traffic pipe.
@@ -101,10 +100,8 @@ def crop_before_wp(flight: Flight, wp: str) -> Flight:
         Cropped flight
     """
     try:
-        # Get the position of the waypoint
-        pos = navaids[wp]
         # For each data point of the flight, calculate the distance to the waypoint
-        flight = flight.distance(pos)
+        flight = flight.distance(wp)
         # Get the timestamp of the closest point to the waypoint
         min_ts = flight.data.loc[flight.data.distance.idxmin()].timestamp
         # Drop the distance column
