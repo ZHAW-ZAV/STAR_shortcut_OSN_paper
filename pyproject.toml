@@ -10,6 +10,9 @@ python = "^3.11"
 traffic = "^2.10.2"
 plotly = "^5.23.0"
 nbformat = "^5.10.4"
+statsmodels = "^0.14.2"
+ipykernel = "^6.29.5"
+seaborn = "^0.13.2"
 
 
 [tool.poetry.group.cm_cluster.dependencies]
